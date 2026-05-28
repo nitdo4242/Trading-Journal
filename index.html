@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매매일지 · Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FDFBF6;
+  --bg-elev: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-sunk: #F4EFE2;
+  --border: rgba(74, 60, 40, 0.09);
+  --border-strong: rgba(74, 60, 40, 0.20);
+  --text: #1F1B16;
+  --text-dim: #5F584D;
+  --text-muted: #948C81;
+  --accent: #B8854A;
+  --accent-warm: #9C6E36;
+  --success: #5F8845;
+  --danger: #B73A36;
+  --warning: #B8854A;
+  --shadow-sm: 0 1px 2px rgba(74, 60, 40, 0.04), 0 0 0 1px rgba(74, 60, 40, 0.05);
+  --shadow-md: 0 3px 10px rgba(74, 60, 40, 0.07), 0 0 0 1px rgba(74, 60, 40, 0.05);
+  --shadow-lg: 0 14px 36px rgba(74, 60, 40, 0.14), 0 2px 8px rgba(74, 60, 40, 0.06);
+}
+
+html, body { overflow-x: hidden; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 2.5rem 1.5rem 4rem;
+  padding-bottom: max(4rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  line-height: 1.5;
+  background-image:
+    radial-gradient(ellipse at top left, rgba(184, 133, 74, 0.08), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(95, 136, 69, 0.05), transparent 55%);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container { max-width: 1100px; margin: 0 auto; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 2.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-style: italic;
+}
+.brand h1 .accent { color: var(--accent); font-style: italic; }
+.brand .subtitle {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(184, 133, 74, 0.25);
+}
+.btn-primary:hover { background: var(--accent-warm); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(184, 133, 74, 0.3); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.data-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 1rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.data-status { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.conn-dot { font-size: 0.7rem; line-height: 1; }
+.conn-label { color: var(--text-dim); }
+.save-status {
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--border);
+}
+.save-status.error { color: var(--danger); }
+.save-status.ok { color: var(--success); }
+.data-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.btn-mini {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.btn-mini:hover { color: var(--accent); border-color: var(--accent); }
+.btn-mini.reconnect { color: var(--accent); border-color: var(--accent); }
+.btn-mini.cloud { color: var(--accent); border-color: rgba(184, 133, 74, 0.4); }
+.btn-mini.cloud:hover { background: rgba(184, 133, 74, 0.08); }
+.btn-mini.danger:hover { color: var(--danger); border-color: var(--danger); }
+
+.spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--text-muted);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.help-text {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  line-height: 1.55;
+  margin-bottom: 0.875rem;
+}
+.help-text code {
+  font-family: 'JetBrains Mono', monospace;
+  font-style: normal;
+  background: var(--bg-sunk);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+.help-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.75rem;
+  background: rgba(184, 133, 74, 0.08);
+  border: 1px solid rgba(184, 133, 74, 0.25);
+  border-radius: 3px;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+.help-link:hover { background: rgba(184, 133, 74, 0.14); }
+.help-warning {
+  font-size: 0.75rem;
+  color: var(--danger);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  padding: 0.625rem 0.75rem;
+  background: rgba(183, 58, 54, 0.06);
+  border-left: 2px solid var(--danger);
+  border-radius: 0 3px 3px 0;
+  margin-top: 0.875rem;
+  line-height: 1.55;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.stat {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 0.5rem;
+}
+.stat-value {
+  font-family: 'Fraunces', serif;
+  font-size: 1.875rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.stat-value.profit { color: var(--success); }
+.stat-value.loss { color: var(--danger); }
+.stat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.25rem;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.section-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.holdings-grid { display: grid; gap: 1rem; }
+
+.holding-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+.holding-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+
+.holding-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+.holding-id { flex: 1; }
+.holding-name {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.125rem;
+}
+.holding-ticker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+.holding-position {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.holding-position .qty { color: var(--text); font-size: 0.95rem; }
+.holding-position .total { font-size: 0.7rem; margin-top: 2px; }
+
+.holding-reason {
+  background: rgba(184, 133, 74, 0.08);
+  border-left: 2px solid var(--accent);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  margin-bottom: 1rem;
+  line-height: 1.55;
+  border-radius: 0 3px 3px 0;
+}
+
+.targets {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.target {
+  display: grid;
+  grid-template-columns: 60px 1fr 100px 90px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.625rem 0.875rem;
+  background: var(--bg-sunk);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.target:hover { border-color: var(--border); background: #EDE5D2; }
+.target.stop { background: rgba(183, 58, 54, 0.06); }
+.target.stop:hover { background: rgba(183, 58, 54, 0.1); }
+.target-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.target.stop .target-label { color: var(--danger); }
+.target-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--text);
+}
+.target-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  text-align: right;
+  color: var(--success);
+}
+.target-pct.neg { color: var(--danger); }
+.target-qty {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.holding-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.holding-event {
+  font-size: 0.75rem;
+  color: var(--warning);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.holding-profit {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.holding-profit strong { color: var(--success); font-weight: 500; }
+.btn-delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.375rem 0.625rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+.btn-delete:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 4px;
+}
+.empty-icon { font-size: 3rem; opacity: 0.2; margin-bottom: 1rem; font-family: 'Fraunces', serif; font-style: italic; }
+.empty-text { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 0.25rem; }
+.empty-sub { color: var(--text-muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 37, 32, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.625rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+.modal .modal-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.form-section:last-of-type { border-bottom: none; }
+.form-section h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+.form-section .hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-style: italic;
+  font-family: 'Fraunces', serif;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-field { display: flex; flex-direction: column; }
+.form-field label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 0.375rem;
+}
+.form-field input, .form-field textarea {
+  background: var(--bg-sunk);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.7rem 0.75rem;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.form-field input:focus, .form-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 3px rgba(184, 133, 74, 0.12);
+}
+.form-field textarea { min-height: 70px; resize: vertical; font-family: 'Fraunces', serif; font-size: 0.95rem; }
+.form-field .sub { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace; }
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.btn-secondary {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  padding: 0.75rem;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { color: var(--text); border-color: var(--text-dim); }
+.modal-actions .btn-primary { flex: 1; }
+
+.philosophy {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: var(--bg-elev);
+  border-radius: 5px;
+  border-left: 3px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+.philosophy h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+.philosophy p {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.philosophy p + p { margin-top: 0.5rem; font-size: 0.85rem; }
+
+@media (max-width: 760px) {
+  body {
+    padding: 1.25rem 1rem 2.5rem;
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    background-image:
+      radial-gradient(ellipse at top, rgba(184, 133, 74, 0.09), transparent 60%);
+  }
+  header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .brand h1 { font-size: 2.125rem; }
+  .brand .subtitle { font-size: 0.7rem; }
+  .btn-primary { padding: 0.85rem 1rem; font-size: 0.9rem; min-height: 48px; width: 100%; }
+
+  /* Stats: 2x2 grid for at-a-glance scan */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    margin-bottom: 2rem;
+  }
+  .stat { padding: 0.9rem 1rem; }
+  .stat-value { font-size: 1.5rem; }
+  .stat-label { font-size: 0.72rem; }
+  .stat-sub { font-size: 0.72rem; }
+
+  /* Data bar: status on top, buttons grid below */
+  .data-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.625rem 0.75rem;
+    gap: 0.625rem;
+  }
+  .data-status { width: 100%; }
+  .data-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.375rem;
+  }
+  .btn-mini {
+    padding: 0.625rem 0.5rem;
+    min-height: 40px;
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+  .save-status {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    width: 100%;
+    font-size: 0.72rem;
+  }
+
+  /* Section header */
+  .section-header { margin-bottom: 1rem; }
+  .section-title { font-size: 1.125rem; }
+  .section-count { font-size: 0.7rem; }
+
+  /* Holding cards */
+  .holding-card { padding: 1.125rem; }
+  .holding-top { flex-direction: column; gap: 0.625rem; }
+  .holding-position { text-align: left; }
+  .holding-name { font-size: 1.375rem; }
+  .holding-reason { font-size: 0.95rem; padding: 0.75rem 0.875rem; }
+
+  /* Targets: label+price on top, %+qty below */
+  .target {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "label price pct"
+      "label qty   qty";
+    gap: 0.25rem 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  .target-label { grid-area: label; align-self: center; font-size: 0.7rem; }
+  .target-price { grid-area: price; }
+  .target-pct { grid-area: pct; text-align: right; }
+  .target-qty { grid-area: qty; text-align: right; }
+
+  /* Footer */
+  .holding-footer { gap: 0.625rem; }
+  .btn-delete { min-height: 40px; padding: 0.55rem 0.85rem; }
+
+  /* Modal: full-width, less padding */
+  .modal-overlay { padding: 0.5rem; align-items: flex-start; padding-top: 1rem; }
+  .modal {
+    padding: 1.25rem;
+    border-radius: 5px;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+  }
+  .modal h2 { font-size: 1.375rem; }
+  .form-row, .form-row.three { grid-template-columns: 1fr; gap: 0.625rem; }
+  .form-section { margin-bottom: 1.125rem; padding-bottom: 1.125rem; }
+  .form-field input, .form-field textarea { font-size: 16px; padding: 0.75rem 0.85rem; }
+  .modal-actions .btn-secondary,
+  .modal-actions .btn-primary { min-height: 48px; font-size: 0.95rem; }
+
+  .philosophy { margin-top: 2rem; padding: 1.125rem; }
+  .philosophy p { font-size: 0.95rem; }
+  .philosophy p + p { font-size: 0.825rem; }
+}
+
+@media (max-width: 420px) {
+  body { padding: 1rem 0.75rem 2.5rem; }
+  .brand h1 { font-size: 1.875rem; }
+  .stats-grid { gap: 0.5rem; }
+  .stat { padding: 0.75rem 0.875rem; }
+  .stat-value { font-size: 1.375rem; }
+  .stat-label { font-size: 0.7rem; letter-spacing: 0.08em; }
+  .holding-card { padding: 1rem; }
+  .holding-name { font-size: 1.25rem; }
+  .btn-mini { font-size: 0.72rem; padding: 0.55rem 0.4rem; letter-spacing: 0.05em; }
+  .modal { padding: 1rem; }
+  .target { grid-template-columns: 44px 1fr auto; font-size: 0.85rem; }
+}
+
+@media (max-width: 360px) {
+  body { padding: 0.875rem 0.625rem 2.25rem; }
+  .brand h1 { font-size: 1.625rem; }
+  .stat-value { font-size: 1.2rem; }
+  .holding-card { padding: 0.875rem; }
+  .data-actions { grid-template-columns: 1fr 1fr; }
+  .btn-mini { font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<div class="brand">
+<h1>매매<span class="accent">일지</span></h1>
+<div class="subtitle">Index · Disposition Effect Defense</div>
+</div>
+<button class="btn-primary" id="btn-new" disabled>+ 새 종목 등록</button>
+</header>
+
+<div class="data-bar">
+  <div class="data-status">
+    <span class="conn-dot" id="conn-dot">○</span>
+    <span class="conn-label" id="conn-label">not connected</span>
+    <span class="save-status" id="save-status"></span>
+  </div>
+  <div class="data-actions" id="data-actions">
+    <button class="btn-mini cloud" id="btn-cloud-sync">☁ Cloud sync</button>
+    <button class="btn-mini cloud" id="btn-cloud-refresh" style="display:none">Refresh</button>
+    <button class="btn-mini" id="btn-reconnect" style="display:none">Reconnect</button>
+    <button class="btn-mini" id="btn-open">Open file</button>
+    <button class="btn-mini" id="btn-new-file">New file</button>
+    <button class="btn-mini" id="btn-import">Import</button>
+    <button class="btn-mini" id="btn-export">Export</button>
+    <button class="btn-mini danger" id="btn-disconnect" style="display:none">Disconnect</button>
+    <button class="btn-mini danger" id="btn-cloud-signout" style="display:none">Sign out</button>
+  </div>
+</div>
+
+<div class="stats-grid" id="stats"></div>
+
+<div class="section-header">
+<div class="section-title">보유 종목</div>
+<div class="section-count" id="count">— positions</div>
+</div>
+
+<div class="holdings-grid" id="holdings"></div>
+
+<div class="philosophy">
+<h4>처분효과 방지 원칙</h4>
+<p>"이익은 빨리 실현하고 손실은 오래 보유한다" — 정확히 반대로 해야 합니다.</p>
+<p>매수 시점에 매도 계획을 함께 적어두면, 불안할 때 감정이 아닌 룰이 결정합니다.</p>
+</div>
+
+</div>
+
+<div class="modal-overlay" id="modal">
+<div class="modal">
+<h2>새 종목 등록</h2>
+<div class="modal-sub">Position + Exit Plan</div>
+
+<div class="form-section">
+<h3>매수 정보</h3>
+<p class="hint">언제 어떻게 들어왔는가</p>
+<div class="form-row">
+<div class="form-field"><label>티커</label><input id="f-ticker" type="text" placeholder="NKE"></div>
+<div class="form-field"><label>종목명</label><input id="f-name" type="text" placeholder="나이키"></div>
+</div>
+<div class="form-row">
+<div class="form-field"><label>매수가 ($)</label><input id="f-price" type="number" step="0.01" placeholder="44.88"></div>
+<div class="form-field"><label>수량 (주)</label><input id="f-qty" type="number" placeholder="40"></div>
+</div>
+<div class="form-field" style="margin-top:0.75rem;">
+<label>매수 이유</label>
+<textarea id="f-reason" placeholder="왜 샀는가? 흔들릴 때 다시 읽을 문장."></textarea>
+</div>
+</div>
+
+<div class="form-section">
+<h3>매도 계획 · 3분할</h3>
+<p class="hint">미리 정해두지 않으면 본능이 정합니다</p>
+<div class="form-row three">
+<div class="form-field">
+<label>1차 ($)</label>
+<input id="f-t1" type="number" step="0.01" placeholder="48.00">
+<span class="sub">수익 확정</span>
+</div>
+<div class="form-field">
+<label>2차 ($)</label>
+<input id="f-t2" type="number" step="0.01" placeholder="52.00">
+<span class="sub">원래 목표</span>
+</div>
+<div class="form-field">
+<label>3차 ($)</label>
+<input id="f-t3" type="number" step="0.01" placeholder="58.00">
+<span class="sub">트레일링</span>
+</div>
+</div>
+<div class="form-row" style="margin-top:0.75rem;">
+<div class="form-field">
+<label>손절선 ($)</label>
+<input id="f-stop" type="number" step="0.01" placeholder="40.00">
+<span class="sub">선택사항</span>
+</div>
+<div class="form-field">
+<label>시간 트리거</label>
+<input id="f-event" type="text" placeholder="6/26 실적 발표 전">
+<span class="sub">선택사항</span>
+</div>
+</div>
+</div>
+
+<div class="modal-actions">
+<button class="btn-secondary" id="btn-cancel">취소</button>
+<button class="btn-primary" id="btn-save">저장</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-sync">
+<div class="modal">
+<h2>Cloud sync</h2>
+<div class="modal-sub">GitHub Gist · 폰 · PC 어디서나</div>
+
+<div class="form-section">
+<p class="help-text">폰·PC 동기화는 GitHub Gist에 <code>holdings.json</code>을 비공개로 저장합니다. 다른 권한 없이 <code>gist</code> 권한만 있는 토큰이면 충분합니다.</p>
+<a class="help-link" href="https://github.com/settings/tokens/new?scopes=gist&description=trading-journal-sync" target="_blank" rel="noopener">↗ 토큰 발급 페이지 열기 (scope: gist)</a>
+<div class="form-field">
+<label>GitHub Personal Access Token</label>
+<input id="f-gist-token" type="password" autocomplete="off" placeholder="ghp_...">
+<span class="sub">한 번 입력하면 이 기기 브라우저에 보관됩니다</span>
+</div>
+<div class="form-field" style="margin-top:0.875rem;">
+<label>Gist ID <span style="text-transform:none;letter-spacing:0;color:var(--text-muted);">(선택)</span></label>
+<input id="f-gist-id" type="text" autocomplete="off" placeholder="비워두면 새 Gist 자동 생성">
+<span class="sub">다른 기기에서 이미 만든 Gist에 연결하려면 ID 붙여넣기</span>
+</div>
+<div class="help-warning">
+⚠ 공용 컴퓨터에서는 사용 후 반드시 <strong>Sign out</strong> 하세요.<br>토큰은 이 브라우저의 localStorage에 평문 저장됩니다.
+</div>
+</div>
+
+<div class="modal-actions">
+<button class="btn-secondary" id="btn-sync-cancel">취소</button>
+<button class="btn-primary" id="btn-sync-connect">연결</button>
+</div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const modal = $('modal');
+const fields = ['f-ticker','f-name','f-price','f-qty','f-reason','f-t1','f-t2','f-t3','f-stop','f-event'];
+
+// ── Persistence: holdings.json via File System Access API ────────────────
+const supportsFSA = typeof window.showSaveFilePicker === 'function';
+const DB_NAME = 'trading_journal_db';
+const STORE = 'handles';
+const HANDLE_KEY = 'holdings_handle';
+
+let holdings = [];
+let fileHandle = null;     // active read/write handle
+let pendingHandle = null;  // recovered from IDB but needs user gesture to grant permission
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSet(key, val) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbDel(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function readFromHandle(handle) {
+  const file = await handle.getFile();
+  const text = await file.text();
+  if (!text.trim()) return [];
+  const parsed = JSON.parse(text);
+  if (!Array.isArray(parsed)) throw new Error('holdings.json must contain a JSON array');
+  return parsed;
+}
+async function writeToHandle(handle, data) {
+  const w = await handle.createWritable();
+  await w.write(JSON.stringify(data, null, 2));
+  await w.close();
+}
+async function verifyPermission(handle, write = true) {
+  const opts = { mode: write ? 'readwrite' : 'read' };
+  if (await handle.queryPermission(opts) === 'granted') return true;
+  if (await handle.requestPermission(opts) === 'granted') return true;
+  return false;
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+function setStatus(text, kind = '') {
+  const el = $('save-status');
+  el.textContent = text;
+  el.className = 'save-status' + (kind ? ' ' + kind : '');
+}
+function updateConnectionBar() {
+  const dot = $('conn-dot');
+  const label = $('conn-label');
+  const hide = id => { const el = $(id); if (el) el.style.display = 'none'; };
+  const show = id => { const el = $(id); if (el) el.style.display = ''; };
+
+  // Reset all action buttons
+  ['btn-cloud-sync', 'btn-cloud-refresh', 'btn-cloud-signout',
+   'btn-reconnect', 'btn-open', 'btn-new-file',
+   'btn-import', 'btn-export', 'btn-disconnect'].forEach(hide);
+  show('btn-import');
+  show('btn-export');
+
+  if (syncMode === 'gist') {
+    dot.textContent = '☁';
+    dot.style.color = 'var(--accent)';
+    label.textContent = `gist · ${(gistId || '').slice(0, 8)}…`;
+    show('btn-cloud-refresh');
+    show('btn-cloud-signout');
+    $('btn-new').disabled = false;
+  } else if (fileHandle) {
+    dot.textContent = '●';
+    dot.style.color = 'var(--success)';
+    label.textContent = fileHandle.name || 'holdings.json';
+    show('btn-disconnect');
+    show('btn-cloud-sync');
+    $('btn-new').disabled = false;
+  } else if (pendingHandle) {
+    dot.textContent = '◐';
+    dot.style.color = 'var(--accent)';
+    label.textContent = (pendingHandle.name || 'holdings.json') + ' · needs permission';
+    show('btn-reconnect');
+    show('btn-cloud-sync');
+    if (supportsFSA) {
+      show('btn-open');
+      show('btn-new-file');
+    }
+    $('btn-new').disabled = true;
+  } else {
+    dot.textContent = '○';
+    dot.style.color = 'var(--text-muted)';
+    label.textContent = supportsFSA ? 'not connected' : 'auto-save unavailable on this browser';
+    show('btn-cloud-sync');
+    if (supportsFSA) {
+      show('btn-open');
+      show('btn-new-file');
+    }
+    $('btn-new').disabled = supportsFSA;
+    if (!supportsFSA) $('btn-new').disabled = false;
+  }
+}
+
+// ── User actions ────────────────────────────────────────────────────────
+async function openExisting() {
+  if (!supportsFSA) return alert('이 브라우저는 자동 저장을 지원하지 않습니다. Import 버튼으로 holdings.json을 불러오세요.');
+  try {
+    const [h] = await window.showOpenFilePicker({
+      types: [{ description: 'Holdings JSON', accept: { 'application/json': ['.json'] } }],
+      multiple: false
+    });
+    if (!(await verifyPermission(h, true))) {
+      setStatus('permission denied', 'error');
+      return;
+    }
+    fileHandle = h;
+    pendingHandle = null;
+    syncMode = 'file';
+    holdings = await readFromHandle(h);
+    await idbSet(HANDLE_KEY, h);
+    renderAll();
+    updateConnectionBar();
+    setStatus(`loaded · ${holdings.length} positions · ${nowTime()}`, 'ok');
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      setStatus('open failed · ' + e.message, 'error');
+    }
+  }
+}
+
+async function createNew() {
+  if (!supportsFSA) return alert('이 브라우저는 파일 생성을 지원하지 않습니다. Export 버튼으로 holdings.json을 받아 보관하세요.');
+  try {
+    const h = await window.showSaveFilePicker({
+      suggestedName: 'holdings.json',
+      types: [{ description: 'Holdings JSON', accept: { 'application/json': ['.json'] } }]
+    });
+    fileHandle = h;
+    pendingHandle = null;
+    syncMode = 'file';
+    if (holdings.length === 0 || confirm('현재 메모리 상의 데이터는 비웁니다. 새 빈 파일로 시작할까요? (취소하면 현재 데이터를 새 파일에 저장)')) {
+      holdings = [];
+    }
+    await writeToHandle(h, holdings);
+    await idbSet(HANDLE_KEY, h);
+    renderAll();
+    updateConnectionBar();
+    setStatus(`created · ${nowTime()}`, 'ok');
+  } catch(e) {
+    if (e.name !== 'AbortError') setStatus('create failed · ' + e.message, 'error');
+  }
+}
+
+async function reconnect() {
+  if (!pendingHandle) return openExisting();
+  try {
+    if (!(await verifyPermission(pendingHandle, true))) {
+      setStatus('permission denied', 'error');
+      return;
+    }
+    fileHandle = pendingHandle;
+    pendingHandle = null;
+    syncMode = 'file';
+    holdings = await readFromHandle(fileHandle);
+    renderAll();
+    updateConnectionBar();
+    setStatus(`reconnected · ${holdings.length} positions · ${nowTime()}`, 'ok');
+  } catch(e) {
+    setStatus('reconnect failed · ' + e.message, 'error');
+  }
+}
+
+async function disconnect() {
+  fileHandle = null;
+  pendingHandle = null;
+  if (syncMode === 'file') syncMode = 'none';
+  await idbDel(HANDLE_KEY);
+  updateConnectionBar();
+  setStatus('disconnected · in-memory only');
+}
+
+function exportJson() {
+  const blob = new Blob([JSON.stringify(holdings, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'holdings.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(`exported · ${nowTime()}`, 'ok');
+}
+
+function importJson() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'application/json,.json';
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error('JSON 최상위가 배열이어야 합니다');
+      if (holdings.length > 0 && !confirm(`현재 ${holdings.length}개 종목이 있습니다. ${data.length}개로 덮어쓸까요?`)) return;
+      holdings = data;
+      if (fileHandle) {
+        try { await writeToHandle(fileHandle, holdings); } catch(e) {}
+      }
+      renderAll();
+      setStatus(`imported · ${holdings.length} positions · ${nowTime()}`, 'ok');
+    } catch(e) {
+      alert('JSON 파싱 실패: ' + e.message);
+      setStatus('import failed', 'error');
+    }
+  };
+  inp.click();
+}
+
+async function persist() {
+  if (syncMode === 'gist' && gistToken && gistId) {
+    try {
+      const updatedAt = await gistWrite(gistToken, gistId, holdings);
+      lastGistUpdatedAt = updatedAt;
+      setStatus(`cloud · saved · ${nowTime()}`, 'ok');
+    } catch(e) {
+      setStatus('cloud · save failed · ' + e.message, 'error');
+    }
+    return;
+  }
+  if (fileHandle) {
+    try {
+      await writeToHandle(fileHandle, holdings);
+      setStatus(`saved · ${nowTime()}`, 'ok');
+    } catch(e) {
+      setStatus('save failed · ' + e.message, 'error');
+    }
+    return;
+  }
+  setStatus('unsaved · connect a sync method', 'error');
+}
+
+// ── Cloud sync via GitHub Gist ──────────────────────────────────────────
+const GIST_TOKEN_KEY = 'tj_gist_token';
+const GIST_ID_KEY = 'tj_gist_id';
+const GIST_API = 'https://api.github.com';
+
+let syncMode = 'none';  // 'none' | 'file' | 'gist'
+let gistToken = null;
+let gistId = null;
+let lastGistUpdatedAt = null;
+
+async function gistRead(token, id) {
+  const r = await fetch(`${GIST_API}/gists/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
+  if (!r.ok) {
+    let msg = `HTTP ${r.status}`;
+    try { const j = await r.json(); if (j.message) msg += ` · ${j.message}`; } catch {}
+    throw new Error(msg);
+  }
+  const j = await r.json();
+  const file = j.files && j.files['holdings.json'];
+  if (!file) throw new Error('holdings.json not found in this gist');
+  let text;
+  if (file.truncated) {
+    const raw = await fetch(file.raw_url);
+    text = await raw.text();
+  } else {
+    text = file.content;
+  }
+  if (!text || !text.trim()) return { data: [], updatedAt: j.updated_at };
+  const data = JSON.parse(text);
+  if (!Array.isArray(data)) throw new Error('holdings.json must be a JSON array');
+  return { data, updatedAt: j.updated_at };
+}
+
+async function gistWrite(token, id, data) {
+  const r = await fetch(`${GIST_API}/gists/${id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: JSON.stringify({
+      files: { 'holdings.json': { content: JSON.stringify(data, null, 2) } }
+    })
+  });
+  if (!r.ok) {
+    let msg = `HTTP ${r.status}`;
+    try { const j = await r.json(); if (j.message) msg += ` · ${j.message}`; } catch {}
+    throw new Error(msg);
+  }
+  const j = await r.json();
+  return j.updated_at;
+}
+
+async function gistCreate(token, data) {
+  const r = await fetch(`${GIST_API}/gists`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: JSON.stringify({
+      description: 'Trading Journal — holdings.json (private)',
+      public: false,
+      files: { 'holdings.json': { content: JSON.stringify(data, null, 2) } }
+    })
+  });
+  if (!r.ok) {
+    let msg = `HTTP ${r.status}`;
+    try { const j = await r.json(); if (j.message) msg += ` · ${j.message}`; } catch {}
+    throw new Error(msg);
+  }
+  const j = await r.json();
+  return { id: j.id, updatedAt: j.updated_at };
+}
+
+function openSyncModal() {
+  $('f-gist-token').value = gistToken || '';
+  $('f-gist-id').value = gistId || '';
+  $('modal-sync').classList.add('open');
+  setTimeout(() => $('f-gist-token').focus(), 100);
+}
+function closeSyncModal() {
+  $('modal-sync').classList.remove('open');
+}
+
+async function connectGist() {
+  const token = $('f-gist-token').value.trim();
+  const inputGistId = $('f-gist-id').value.trim();
+  if (!token) { alert('토큰을 입력하세요'); return; }
+
+  const connectBtn = $('btn-sync-connect');
+  const orig = connectBtn.textContent;
+  connectBtn.textContent = '연결 중...';
+  connectBtn.disabled = true;
+  setStatus('cloud · connecting...', '');
+
+  try {
+    let id = inputGistId;
+    let updatedAt;
+
+    if (id) {
+      const { data, updatedAt: ua } = await gistRead(token, id);
+      updatedAt = ua;
+      if (holdings.length > 0 && JSON.stringify(data) !== JSON.stringify(holdings)) {
+        const useGist = confirm(
+          `Gist에 ${data.length}개, 메모리에 ${holdings.length}개 있어요.\n\n` +
+          `[확인] = Gist 데이터 사용 (메모리 덮어쓰기)\n` +
+          `[취소] = 메모리 데이터로 Gist 덮어쓰기`
+        );
+        if (useGist) {
+          holdings = data;
+        } else {
+          updatedAt = await gistWrite(token, id, holdings);
+        }
+      } else {
+        holdings = data;
+      }
+    } else {
+      const created = await gistCreate(token, holdings);
+      id = created.id;
+      updatedAt = created.updatedAt;
+    }
+
+    gistToken = token;
+    gistId = id;
+    lastGistUpdatedAt = updatedAt;
+    syncMode = 'gist';
+    localStorage.setItem(GIST_TOKEN_KEY, token);
+    localStorage.setItem(GIST_ID_KEY, id);
+
+    closeSyncModal();
+    renderAll();
+    updateConnectionBar();
+    setStatus(`cloud · synced · ${holdings.length} · ${nowTime()}`, 'ok');
+  } catch(e) {
+    setStatus('cloud · ' + e.message, 'error');
+    alert('연결 실패: ' + e.message + '\n\n토큰/Gist ID/인터넷 연결을 확인하세요.');
+  } finally {
+    connectBtn.textContent = orig;
+    connectBtn.disabled = false;
+  }
+}
+
+async function cloudRefresh() {
+  if (!gistToken || !gistId) return;
+  setStatus('cloud · refreshing...', '');
+  try {
+    const { data, updatedAt } = await gistRead(gistToken, gistId);
+    holdings = data;
+    lastGistUpdatedAt = updatedAt;
+    renderAll();
+    setStatus(`cloud · refreshed · ${holdings.length} · ${nowTime()}`, 'ok');
+  } catch(e) {
+    setStatus('cloud · refresh failed · ' + e.message, 'error');
+  }
+}
+
+function cloudSignOut() {
+  if (!confirm('Cloud sync 해제? 이 기기의 토큰만 삭제되고, Gist 자체는 GitHub에 남아있어요.')) return;
+  localStorage.removeItem(GIST_TOKEN_KEY);
+  localStorage.removeItem(GIST_ID_KEY);
+  gistToken = null;
+  gistId = null;
+  lastGistUpdatedAt = null;
+  syncMode = 'none';
+  holdings = [];
+  renderAll();
+  updateConnectionBar();
+  setStatus('cloud · signed out');
+}
+
+// ── Rendering (unchanged from original except data source) ──────────────
+function pct(buy, target) { return ((target - buy) / buy * 100); }
+function fmt(n) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function renderStats() {
+  const totalPositions = holdings.length;
+  const totalCost = holdings.reduce((s, h) => s + h.price * h.qty, 0);
+  let expectedProfit = 0;
+  holdings.forEach(h => {
+    const qty = Number(h.qty);
+    const q1 = Math.floor(qty / 3), q2 = Math.floor(qty / 3), q3 = qty - q1 - q2;
+    if (h.t1) expectedProfit += (h.t1 - h.price) * q1;
+    if (h.t2) expectedProfit += (h.t2 - h.price) * q2;
+    if (h.t3) expectedProfit += (h.t3 - h.price) * q3;
+  });
+  const expectedPct = totalCost > 0 ? (expectedProfit / totalCost * 100) : 0;
+
+  $('stats').innerHTML = `
+    <div class="stat">
+      <div class="stat-label">Positions</div>
+      <div class="stat-value">${totalPositions}</div>
+      <div class="stat-sub">active holdings</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total Cost</div>
+      <div class="stat-value">$${fmt(totalCost)}</div>
+      <div class="stat-sub">invested capital</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Expected P/L</div>
+      <div class="stat-value ${expectedProfit >= 0 ? 'profit' : 'loss'}">${expectedProfit >= 0 ? '+' : ''}$${fmt(expectedProfit)}</div>
+      <div class="stat-sub">if all targets hit</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Expected Return</div>
+      <div class="stat-value ${expectedPct >= 0 ? 'profit' : 'loss'}">${expectedPct >= 0 ? '+' : ''}${expectedPct.toFixed(1)}%</div>
+      <div class="stat-sub">on portfolio</div>
+    </div>
+  `;
+  $('count').textContent = totalPositions === 0 ? '— positions' : `${String(totalPositions).padStart(2, '0')} positions`;
+}
+
+function renderHoldings() {
+  if (holdings.length === 0) {
+    $('holdings').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">∅</div>
+        <div class="empty-text">아직 등록된 종목이 없어요</div>
+        <div class="empty-sub">${fileHandle ? 'START · 첫 종목을 등록해보세요' : 'CONNECT · 데이터 파일을 먼저 연결하거나 만드세요'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  holdings.forEach((h, idx) => {
+    const qty = Number(h.qty);
+    const q1 = Math.floor(qty / 3), q2 = Math.floor(qty / 3), q3 = qty - q1 - q2;
+    const total = h.price * qty;
+
+    let targets = '';
+    const mkTarget = (label, price, q, isStop = false) => {
+      if (!price) return '';
+      const p = pct(h.price, price);
+      const cls = p < 0 ? 'neg' : '';
+      return `<div class="target ${isStop ? 'stop' : ''}">
+        <span class="target-label">${label}</span>
+        <span class="target-price">$${fmt(price)}</span>
+        <span class="target-pct ${cls}">${p >= 0 ? '+' : ''}${p.toFixed(1)}%</span>
+        <span class="target-qty">${q}주</span>
+      </div>`;
+    };
+    targets += mkTarget('1차', h.t1, q1);
+    targets += mkTarget('2차', h.t2, q2);
+    targets += mkTarget('3차', h.t3, q3);
+    targets += mkTarget('손절', h.stop, qty, true);
+
+    let expProfit = 0;
+    if (h.t1) expProfit += (h.t1 - h.price) * q1;
+    if (h.t2) expProfit += (h.t2 - h.price) * q2;
+    if (h.t3) expProfit += (h.t3 - h.price) * q3;
+
+    html += `<div class="holding-card">
+      <div class="holding-top">
+        <div class="holding-id">
+          <div class="holding-name">${escapeHtml(h.name || h.ticker)}</div>
+          <div class="holding-ticker">${escapeHtml(h.ticker)}</div>
+        </div>
+        <div class="holding-position">
+          <div class="qty">${qty}주 @ $${fmt(h.price)}</div>
+          <div class="total">cost · $${fmt(total)}</div>
+        </div>
+      </div>
+      ${h.reason ? `<div class="holding-reason">"${escapeHtml(h.reason)}"</div>` : ''}
+      ${targets ? `<div class="targets">${targets}</div>` : ''}
+      <div class="holding-footer">
+        <div>
+          ${h.event ? `<div class="holding-event">⏱ ${escapeHtml(h.event)}</div>` : ''}
+          ${expProfit > 0 ? `<div class="holding-profit">expected · <strong>+$${fmt(expProfit)}</strong></div>` : ''}
+        </div>
+        <button class="btn-delete" data-idx="${idx}">DELETE</button>
+      </div>
+    </div>`;
+  });
+  $('holdings').innerHTML = html;
+
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('이 종목을 삭제할까요?')) return;
+      const idx = Number(btn.getAttribute('data-idx'));
+      holdings.splice(idx, 1);
+      renderAll();
+      await persist();
+    };
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function renderAll() {
+  renderStats();
+  renderHoldings();
+}
+
+// ── Modal ────────────────────────────────────────────────────────────────
+function openModal() {
+  if (syncMode === 'none' && supportsFSA) {
+    alert('먼저 동기화 방법을 선택하세요.\n· Cloud sync (폰·PC 공유)\n· Open / New file (이 기기에 저장)');
+    return;
+  }
+  modal.classList.add('open');
+  setTimeout(() => $('f-ticker').focus(), 100);
+}
+function closeModal() {
+  modal.classList.remove('open');
+  fields.forEach(id => $(id).value = '');
+}
+
+$('btn-new').onclick = openModal;
+$('btn-cancel').onclick = closeModal;
+modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+$('btn-save').onclick = async () => {
+  const ticker = $('f-ticker').value.trim().toUpperCase();
+  const price = $('f-price').value;
+  const qty = $('f-qty').value;
+  if (!ticker || !price || !qty) {
+    alert('티커, 매수가, 수량은 필수입니다');
+    return;
+  }
+  const newHolding = {
+    ticker,
+    name: $('f-name').value.trim(),
+    price: Number(price),
+    qty: Number(qty),
+    reason: $('f-reason').value.trim(),
+    t1: $('f-t1').value ? Number($('f-t1').value) : null,
+    t2: $('f-t2').value ? Number($('f-t2').value) : null,
+    t3: $('f-t3').value ? Number($('f-t3').value) : null,
+    stop: $('f-stop').value ? Number($('f-stop').value) : null,
+    event: $('f-event').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  holdings.push(newHolding);
+  closeModal();
+  renderAll();
+  await persist();
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if ($('modal-sync').classList.contains('open')) { closeSyncModal(); return; }
+  if (modal.classList.contains('open')) closeModal();
+});
+
+// ── Data-bar wiring ──────────────────────────────────────────────────────
+$('btn-open').onclick = openExisting;
+$('btn-new-file').onclick = createNew;
+$('btn-reconnect').onclick = reconnect;
+$('btn-disconnect').onclick = disconnect;
+$('btn-import').onclick = importJson;
+$('btn-export').onclick = exportJson;
+$('btn-cloud-sync').onclick = openSyncModal;
+$('btn-cloud-refresh').onclick = cloudRefresh;
+$('btn-cloud-signout').onclick = cloudSignOut;
+$('btn-sync-cancel').onclick = closeSyncModal;
+$('btn-sync-connect').onclick = connectGist;
+$('modal-sync').onclick = (e) => { if (e.target === $('modal-sync')) closeSyncModal(); };
+
+// ── Boot ────────────────────────────────────────────────────────────────
+(async function boot() {
+  // 1. Try Gist mode first (works on any browser, mobile included)
+  const savedToken = localStorage.getItem(GIST_TOKEN_KEY);
+  const savedGistId = localStorage.getItem(GIST_ID_KEY);
+  if (savedToken && savedGistId) {
+    setStatus('cloud · loading…', '');
+    try {
+      const { data, updatedAt } = await gistRead(savedToken, savedGistId);
+      gistToken = savedToken;
+      gistId = savedGistId;
+      lastGistUpdatedAt = updatedAt;
+      syncMode = 'gist';
+      holdings = data;
+      updateConnectionBar();
+      renderAll();
+      setStatus(`cloud · loaded · ${holdings.length} · ${nowTime()}`, 'ok');
+      return;
+    } catch(e) {
+      console.warn('gist auto-load failed', e);
+      setStatus('cloud · ' + e.message + ' · falling back', 'error');
+      // continue to file mode below
+    }
+  }
+
+  // 2. Try File System Access mode (Chrome/Edge desktop)
+  if (!supportsFSA) {
+    setStatus('local auto-save unavailable · click ☁ Cloud sync', '');
+    updateConnectionBar();
+    renderAll();
+    return;
+  }
+  try {
+    const stored = await idbGet(HANDLE_KEY);
+    if (stored) {
+      const perm = await stored.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        fileHandle = stored;
+        syncMode = 'file';
+        holdings = await readFromHandle(stored);
+        setStatus(`loaded · ${holdings.length} positions · ${nowTime()}`, 'ok');
+      } else {
+        pendingHandle = stored;
+        setStatus('click Reconnect, or use ☁ Cloud sync', 'error');
+      }
+    } else {
+      setStatus('open file, create new, or click ☁ Cloud sync');
+    }
+  } catch(e) {
+    console.warn('boot recovery failed', e);
+    setStatus('open file, create new, or click ☁ Cloud sync');
+  }
+  updateConnectionBar();
+  renderAll();
+})();
+</script>
+</body>
+</html>
